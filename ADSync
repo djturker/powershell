@@ -1,0 +1,11 @@
+$DC= "Domain Controller Names.."
+invoke-command -ComputerName $dc {repadmin /syncall /Aed}
+#invoke-command -ComputerName $dc {gpupdate /force}
+#Invoke-Command -ComputerName $dc {dcdiag /fix /e}
+#First part of script runs a full domain replication, the second part will run the connection to ADConnect on premises to sync with O365. It will prompt for which ADC server
+#to connect with. The ADSync process runs a delta but you can switch to full by changing the paramater.
+$AADComputer = Read-Host -Prompt 'Input Active ADC Server name here'
+$session = New-PSSession -ComputerName $AADComputer
+Invoke-Command -Session $session -ScriptBlock {Import-Module "C:\Program Files\Microsoft Azure AD Sync\Bin\ADSync\ADSync.psd1"}
+Invoke-Command -Session $session -ScriptBlock {Start-ADSyncSyncCycle -PolicyType Delta}
+Remove-PSSession $session
