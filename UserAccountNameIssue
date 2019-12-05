@@ -1,0 +1,22 @@
+
+#grab the SAMAccountNames from everybody in the VPN group
+$VPNSams = Get-ADGroupMember vpn | Select-Object SamAccountName
+
+#clear out junk text like labels and brackets
+$VPNSams = $VPNSams -replace "@{samaccountname=","" -replace "}",""
+
+#check for upper case letters, if they do exist convert them to lower and re-apply the SamAccountName
+
+#loop through all the members of the VPN group
+foreach ($VPNSam in $VPNSAMS) {
+
+#check for any upper case letters in each account individually 
+if ($VPNSam -cmatch '[A-Z]'){
+
+#if an upper is found convert the name to all lower
+$LowerCaseSam="$VPNSam".ToLower()
+
+#reapply the lowercase name to the AD account. 
+Set-Aduser $VPNSam -SamAccountName $LowerCaseSam
+}
+}
