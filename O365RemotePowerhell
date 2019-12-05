@@ -1,0 +1,3 @@
+$everybody = Get-Mailbox -ResultSize unlimited | get-user | where {$_.remotepowershellenabled -eq "true"}
+
+foreach ($body in $everybody) {set-user -Identity "$body" -RemotePowerShellEnabled $false}
