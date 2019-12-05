@@ -1,0 +1,28 @@
+#get list of mailboxes and or Exchange objects to process
+#in this case the script is only looking at the group Datacenter
+
+$allmailboxes = Get-DistributionGroupMember Datacenter | Get-RemoteMailbox | select SamAccountName
+
+#cleanup the output-  this removes lables and brackets.
+$allmailboxes = $allmailboxes -replace "@{SamAccountName=","" -replace "}",""
+
+
+#check the list gathered above and see if it has a co.turker.ca.us address
+foreach ($mailbox in $allmailboxes) {
+
+#list the instances of co.turker.ca.us email addresses in the account
+#this is only catching email addresses that end in co.marin.ca.us.  It will not touch any other SMTP address.
+$badaddress= get-remotemailbox $mailbox |select Name -ExpandProperty Emailaddresses | select SMTPAddress | where {$_.SMTPAddress -match "co.turker.ca.us"}
+
+#cleanup the output
+$badaddress = $badaddress -replace "@{SmtpAddress=","" -replace "}",""
+
+#Here is the command that actually memoves.co.turker.ca.us
+#I used a foreach command in case an account had several co.turker.ca.us addresses.  the foreach will also work if there's only one. 
+
+#only continue if there is information in the $badaddress variable. if its blank, do nothing
+if ($badaddress -ne $null){
+foreach ($address in $badaddress) {Set-RemoteMailbox $mailbox -EmailAddresses @{remove=$address}}
+}
+
+}
